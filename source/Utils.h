@@ -13,8 +13,32 @@ namespace dae
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
 			//todo W1
-			assert(false && "No Implemented Yet!");
-			return false;
+			//assert(false && "No Implemented Yet!");
+
+			if (!ignoreHitRecord)
+			{
+				Vector3 tc{ ray.origin, sphere.origin }; //vector between ray origin and sphere center
+				float tcl{ tc.Magnitude() }; //length of tc
+				float dp{ Vector3::Dot(tc, ray.direction) }; //distance between ray origin and P (P is the intersection point of the line through the sphere origin, perpendicular onto the ray)
+				float od2{ Square(tcl) - Square(dp) }; //squared length of CP (center of sphere to point described above)
+
+				if (od2 <= Square(sphere.radius)) // if distance between center of sphere and P is smaller than radius --> intersection(s)
+				{
+					hitRecord.didHit = true;
+
+					float tca{ sqrt(Square(sphere.radius) - od2) };
+					float t0{ dp - tca };
+					//Vector3 intersect{ ray.origin + ray.direction * t0 };
+
+					hitRecord.t = t0;
+				}
+				else
+				{
+					hitRecord.didHit = false;
+				}
+			}
+
+		return false;
 		}
 
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray)
