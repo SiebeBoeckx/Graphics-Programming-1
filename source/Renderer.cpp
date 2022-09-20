@@ -47,19 +47,21 @@ void Renderer::Render(Scene* pScene) const
 			//ColorRGB finalColor{ rayDirection.x, rayDirection.y, rayDirection.z };
 			ColorRGB finalColor{};
 
-			//HitRecord closestHit{};
+			HitRecord closestHit{};
 			//
 			//Sphere testSphere{ Vector3{0.f, 0.f, 100.f}, 50.f, 0 };
 			//
 			//GeometryUtils::HitTest_Sphere(testSphere, viewRay, closestHit);
+			// 
+			pScene->GetClosestHit(viewRay, closestHit);
 			//
-			//if (closestHit.didHit)
-			//{
-			//	//finalColor = materials[closestHit.materialIndex]->Shade();
+			if (closestHit.didHit)
+			{
+				finalColor = materials[closestHit.materialIndex]->Shade();
 			//
 			//	const float scaled_t = (closestHit.t - 50.f) / 40.f;
 			//	finalColor = { scaled_t, scaled_t, scaled_t };
-			//}
+			}
 
 
 			//Update Color in Buffer

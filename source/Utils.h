@@ -52,7 +52,16 @@ namespace dae
 		inline bool HitTest_Plane(const Plane& plane, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
 			//todo W1
-			assert(false && "No Implemented Yet!");
+			//assert(false && "No Implemented Yet!");
+
+			if (!ignoreHitRecord)
+			{
+				float t{ (Vector3::Dot((plane.origin - ray.origin), plane.normal) / Vector3::Dot(ray.direction, plane.normal))}; //distance between ray origin and plane intersect
+				
+				hitRecord.didHit = true;
+				Vector3 p{ ray.origin + t * plane.normal };
+				hitRecord.t = p.Magnitude();
+			}	
 			return false;
 		}
 
