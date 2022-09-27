@@ -105,6 +105,7 @@ namespace dae {
 	Matrix Matrix::CreateTranslation(float x, float y, float z)
 	{
 		//todo W1
+		//return Matrix{Vector4{GetAxisX(), 0}, }
 		assert(false && "Not Implemented Yet");
 		return {};
 	}

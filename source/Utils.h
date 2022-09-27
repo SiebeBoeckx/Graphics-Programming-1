@@ -17,29 +17,39 @@ namespace dae
 
 			if (!ignoreHitRecord)
 			{
-				Vector3 tc{ ray.origin, sphere.origin }; //vector between ray origin and sphere center
+				Vector3 tc{ sphere.origin - ray.origin }; //vector between ray origin and sphere center
 				float tcl{ tc.Magnitude() }; //length of tc
 				float dp{ Vector3::Dot(tc, ray.direction) }; //distance between ray origin and P (P is the intersection point of the line through the sphere origin, perpendicular onto the ray)
 				float od2{ Square(tcl) - Square(dp) }; //squared length of CP (center of sphere to point described above)
 
-				if (od2 <= Square(sphere.radius)) // if distance between center of sphere and P is smaller than radius --> intersection(s)
+				if (sqrtf(od2) <= sphere.radius) // if distance between center of sphere and P is smaller than radius --> intersection(s)
 				{
 					hitRecord.didHit = true;
 
-					float tca{ sqrt(Square(sphere.radius) - od2) };
+					float tca{ sqrtf(Square(sphere.radius) - od2) };
 					float t0{ dp - tca };
-					//Vector3 intersect{ ray.origin + ray.direction * t0 };
+
+					if (t0 < ray.min || t0 > ray.max)
+					{
+						hitRecord.didHit = false;
+						return false;
+					}
+
+					Vector3 intersect{ ray.origin + ray.direction * t0 };
 
 					hitRecord.t = t0;
 					hitRecord.materialIndex = sphere.materialIndex;
+					hitRecord.origin = intersect;
+					hitRecord.normal = sphere.origin - intersect;
+					return true;
 				}
 				else
 				{
 					hitRecord.didHit = false;
+					return false;
 				}
 			}
-
-		return false;
+			return false;
 		}
 
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray)
@@ -57,14 +67,28 @@ namespace dae
 
 			if (!ignoreHitRecord)
 			{
-				float t{ (Vector3::Dot((plane.origin - ray.origin), plane.normal) / Vector3::Dot(ray.direction.Normalized(), plane.normal))}; //distance between ray origin and plane intersect
-				Vector3 p{ ray.origin + t * plane.normal };
+				float t{ Vector3::Dot((plane.origin - ray.origin), plane.normal) / Vector3::Dot(ray.direction, plane.normal)}; //distance between ray origin and plane intersect
+
+				if(t < ray.min || t > ray.max)
+				{
+					hitRecord.didHit = false;
+					return false;
+				}
+
+				Vector3 p{ ray.origin + t * ray.direction };
 
 				hitRecord.didHit = true;
 				hitRecord.t = p.Magnitude();
 				hitRecord.materialIndex = plane.materialIndex;
-			}	
-			return false;
+				hitRecord.origin = p;
+				hitRecord.normal = plane.normal;
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+			
 		}
 
 		inline bool HitTest_Plane(const Plane& plane, const Ray& ray)

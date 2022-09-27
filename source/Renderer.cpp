@@ -35,10 +35,11 @@ void Renderer::Render(Scene* pScene) const
 			float rayY{ 1 - ((2 * (py + 0.5f)) / m_Height) };
 
 			Vector3 origin{ 0,0,0 };
-			Vector3 rayDirection = rayX * camera.right + rayY * camera.up + camera.forward;
+			//Vector3 rayDirection = rayX * camera.right + rayY * camera.up + camera.forward;
+			Vector3 rayDirection = { rayX,rayY,1 };
 			rayDirection.Normalize();
 
-			Ray viewRay{ origin, rayDirection };
+			Ray viewRay{ camera.origin, rayDirection };
 
 			//float gradient = px / static_cast<float>(m_Width);
 			//gradient += py / static_cast<float>(m_Width);
@@ -52,16 +53,25 @@ void Renderer::Render(Scene* pScene) const
 			//Sphere testSphere{ Vector3{0.f, 0.f, 100.f}, 50.f, 0 };
 			//
 			//GeometryUtils::HitTest_Sphere(testSphere, viewRay, closestHit);
-			// 
-			pScene->GetClosestHit(viewRay, closestHit);
 			//
+
+			if(px == 320 && py == 288)
+			{
+				int k{};
+			}
+
+			pScene->GetClosestHit(viewRay, closestHit);
 			if (closestHit.didHit)
 			{
 				finalColor = materials[closestHit.materialIndex]->Shade();
-			
-				const float scaled_t = (closestHit.t - 10.f) / 40.f;
-				finalColor = finalColor / scaled_t;
 			}
+			//if (closestHit.didHit)
+			//{
+			//	finalColor = materials[closestHit.materialIndex]->Shade();
+			//
+			//	const float scaled_t = (closestHit.t - 10.f) / 40.f;
+			//	finalColor = finalColor / scaled_t;
+			//}
 
 
 			//Update Color in Buffer
