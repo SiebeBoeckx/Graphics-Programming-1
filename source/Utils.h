@@ -57,10 +57,10 @@ namespace dae
 
 			if (!ignoreHitRecord)
 			{
-				float t{ (Vector3::Dot((plane.origin - ray.origin), plane.normal) / Vector3::Dot(ray.direction, plane.normal))}; //distance between ray origin and plane intersect
-				
-				hitRecord.didHit = true;
+				float t{ (Vector3::Dot((plane.origin - ray.origin), plane.normal) / Vector3::Dot(ray.direction.Normalized(), plane.normal))}; //distance between ray origin and plane intersect
 				Vector3 p{ ray.origin + t * plane.normal };
+
+				hitRecord.didHit = true;
 				hitRecord.t = p.Magnitude();
 				hitRecord.materialIndex = plane.materialIndex;
 			}	
