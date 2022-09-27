@@ -31,40 +31,29 @@ namespace dae {
 		//todo W1
 		//assert(false && "No Implemented Yet!");
 
-		for (size_t i{}; i < m_SphereGeometries.size(); ++i)
+		HitRecord currentHitRecord{};
+
+		for (size_t i{}; i < m_SphereGeometries.size(); ++i)//loop over spheres
 		{
-			HitRecord currentHitRecord{};
-		
 			GeometryUtils::HitTest_Sphere(m_SphereGeometries[i], ray, currentHitRecord);
-			currentHitRecord.materialIndex = m_SphereGeometries[i].materialIndex;
-		
-			if (currentHitRecord.didHit)
+
+			if (currentHitRecord.t < closestHit.t)
 			{
-				closestHit.didHit = true;
-				if (currentHitRecord.t < closestHit.t)
-				{
-					closestHit.t = currentHitRecord.t;
-					closestHit.materialIndex = currentHitRecord.materialIndex;
-				}
+				closestHit = currentHitRecord;
 			}
 		}
 
+		currentHitRecord = closestHit;
+
 		for (size_t i{}; i < m_PlaneGeometries.size(); ++i)
 		{
-			HitRecord currentHitRecord{closestHit};
-
 			GeometryUtils::HitTest_Plane(m_PlaneGeometries[i], ray, currentHitRecord);
-			currentHitRecord.materialIndex = m_PlaneGeometries[i].materialIndex;
-
-			if (currentHitRecord.didHit)
+			
+			if (currentHitRecord.t < closestHit.t)
 			{
-				closestHit.didHit = true;
-				if (currentHitRecord.t < closestHit.t)
-				{
-					closestHit.t = currentHitRecord.t;
-					closestHit.materialIndex = currentHitRecord.materialIndex;
-				}
+				closestHit = currentHitRecord;
 			}
+		
 		}
 	}
 

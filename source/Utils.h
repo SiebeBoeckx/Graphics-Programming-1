@@ -31,6 +31,7 @@ namespace dae
 					//Vector3 intersect{ ray.origin + ray.direction * t0 };
 
 					hitRecord.t = t0;
+					hitRecord.materialIndex = sphere.materialIndex;
 				}
 				else
 				{
@@ -61,6 +62,7 @@ namespace dae
 				hitRecord.didHit = true;
 				Vector3 p{ ray.origin + t * plane.normal };
 				hitRecord.t = p.Magnitude();
+				hitRecord.materialIndex = plane.materialIndex;
 			}	
 			return false;
 		}
