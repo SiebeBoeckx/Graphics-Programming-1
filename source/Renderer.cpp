@@ -27,19 +27,26 @@ void Renderer::Render(Scene* pScene) const
 	auto& materials = pScene->GetMaterials();
 	auto& lights = pScene->GetLights();
 
+	float ar{ float(m_Width) / float(m_Height) };
+	float fov{ tanf(	(camera.fovAngle*TO_RADIANS) / 2) };
+
 	for (int px{}; px < m_Width; ++px)
 	{
 		for (int py{}; py < m_Height; ++py)
 		{
-			float rayX{ (((2 * (px + 0.5f)) / m_Width) - 1) * (float(m_Width) / m_Height) };
-			float rayY{ 1 - ((2 * (py + 0.5f)) / m_Height) };
+			float rayX{ (((2 * (px + 0.5f)) / m_Width) - 1) * ar * fov };
+			float rayY{ 1 - ((2 * (py + 0.5f)) / m_Height ) * fov };
 
 			Vector3 origin{ 0,0,0 };
-			//Vector3 rayDirection = rayX * camera.right + rayY * camera.up + camera.forward;
-			Vector3 rayDirection = { rayX,rayY,1 };
-			rayDirection.Normalize();
+			Vector3 rayDirection = rayX * camera.right + rayY * camera.up + camera.forward;
 
-			Ray viewRay{ camera.origin, rayDirection };
+			const Matrix cameraToWorld = camera.CalculateCameraToWorld();
+			Vector3 transformedRay = { cameraToWorld.TransformVector(rayDirection) };
+			
+			//Vector3 rayDirection = { rayX,rayY,1 };
+			transformedRay.Normalize();
+
+			Ray viewRay{ camera.origin, transformedRay };
 
 			//float gradient = px / static_cast<float>(m_Width);
 			//gradient += py / static_cast<float>(m_Width);
@@ -55,23 +62,33 @@ void Renderer::Render(Scene* pScene) const
 			//GeometryUtils::HitTest_Sphere(testSphere, viewRay, closestHit);
 			//
 
-			if(px == 320 && py == 288)
-			{
-				int k{};
-			}
+			//if(px == 320 && py == 288)
+			//{
+			//	int k{};
+			//}
 
 			pScene->GetClosestHit(viewRay, closestHit);
 			if (closestHit.didHit)
 			{
 				finalColor = materials[closestHit.materialIndex]->Shade();
 			}
-			//if (closestHit.didHit)
-			//{
-			//	finalColor = materials[closestHit.materialIndex]->Shade();
-			//
-			//	const float scaled_t = (closestHit.t - 10.f) / 40.f;
-			//	finalColor = finalColor / scaled_t;
-			//}
+
+			//shadows(hard)
+			if (closestHit.didHit)
+			{
+				finalColor = materials[closestHit.materialIndex]->Shade();
+
+				for (auto& pLight : lights)
+				{
+					Vector3 lightDir = LightUtils::GetDirectionToLight(pLight, closestHit.origin + (closestHit.normal * 0.001f));
+					const float lightrayMagnitude{ lightDir.Magnitude() };
+					Ray lightRay{ closestHit.origin + (closestHit.normal * 0.001f),lightDir.Normalized(),0.0001f,lightrayMagnitude };
+					if (pScene->DoesHit(lightRay))
+					{
+						finalColor *= 0.5f;
+					}
+				}
+			}
 
 
 			//Update Color in Buffer
