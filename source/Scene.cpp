@@ -64,24 +64,18 @@ namespace dae {
 		//assert(false && "No Implemented Yet!");
 		HitRecord currentHitRecord{};
 
-		for (auto& sphere : m_SphereGeometries)//loop over spheres
+		for (const auto& sphere : m_SphereGeometries)//loop over spheres
 		{
-			if (GeometryUtils::HitTest_Sphere(sphere, ray, currentHitRecord))
+			if (GeometryUtils::HitTest_Sphere(sphere, ray))
 			{
-				if (currentHitRecord.t < ray.max && currentHitRecord.t > ray.min)
-				{
-					return true;
-				}
+				return true;
 			}
 		}
-		for (auto& plane : m_PlaneGeometries)//loop over planes
+		for (const auto& plane : m_PlaneGeometries)//loop over planes
 		{
-			if (GeometryUtils::HitTest_Plane(plane, ray, currentHitRecord))
+			if (GeometryUtils::HitTest_Plane(plane, ray))
 			{
-				if (currentHitRecord.t < ray.max && currentHitRecord.t > ray.min)
-				{
-					return true;
-				}
+				return true;
 			}
 		}
 		return false;

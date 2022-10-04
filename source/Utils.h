@@ -15,40 +15,39 @@ namespace dae
 			//todo W1
 			//assert(false && "No Implemented Yet!");
 
-			if (!ignoreHitRecord)
+			
+			Vector3 tc{ sphere.origin - ray.origin }; //vector between ray origin and sphere center
+			float tcl2{ tc.SqrMagnitude() }; //length of tc squared
+			float dp{ Vector3::Dot(tc, ray.direction) }; //distance between ray origin and P (P is the intersection point of the line through the sphere origin, perpendicular onto the ray)
+			float od2{ tcl2 - Square(dp) }; //squared length of CP (center of sphere to point described above)
+			
+			if (od2 <= sphere.radius * sphere.radius) // if distance between center of sphere and P is smaller than radius --> intersection(s)
 			{
-				Vector3 tc{ sphere.origin - ray.origin }; //vector between ray origin and sphere center
-				float tcl{ tc.Magnitude() }; //length of tc
-				float dp{ Vector3::Dot(tc, ray.direction) }; //distance between ray origin and P (P is the intersection point of the line through the sphere origin, perpendicular onto the ray)
-				float od2{ Square(tcl) - Square(dp) }; //squared length of CP (center of sphere to point described above)
+				float tca{ sqrtf((sphere.radius * sphere.radius) - od2) };
+				float t0{ dp - tca };
 			
-				if (od2 <= sphere.radius * sphere.radius) // if distance between center of sphere and P is smaller than radius --> intersection(s)
-				{
-					hitRecord.didHit = true;
-			
-					float tca{ sqrtf(Square(sphere.radius) - od2) };
-					float t0{ dp - tca };
-			
-					if (t0 < ray.min || t0 > ray.max)
-					{
-						hitRecord.didHit = false;
-						return false;
-					}
-			
-					Vector3 intersect{ ray.origin + ray.direction * t0 };
-			
-					hitRecord.t = t0;
-					hitRecord.materialIndex = sphere.materialIndex;
-					hitRecord.origin = intersect;
-					hitRecord.normal = sphere.origin - intersect;
-					return true;
-				}
-				else
+				if (t0 < ray.min || t0 > ray.max)
 				{
 					hitRecord.didHit = false;
 					return false;
 				}
+
+				hitRecord.didHit = true;
+				if(ignoreHitRecord)
+
+				{
+					return true;
+				}
+			
+				const Vector3 intersect{ ray.origin + ray.direction * t0 };
+				
+				hitRecord.t = t0;
+				hitRecord.materialIndex = sphere.materialIndex;
+				hitRecord.origin = intersect;
+				hitRecord.normal = (intersect - sphere.origin).Normalized();
+				return true;
 			}
+			hitRecord.didHit = false;
 			return false;
 		}
 
@@ -66,31 +65,27 @@ namespace dae
 			//assert(false && "No Implemented Yet!");
 			//This code was wrong, was the cause of the bug
 
-			if (!ignoreHitRecord)
+			const float t{ Vector3::Dot((plane.origin - ray.origin), plane.normal) / Vector3::Dot(ray.direction, plane.normal)}; //distance between ray origin and plane intersect
+
+			if (t > ray.min && t < ray.max)
 			{
-				float t{ Vector3::Dot((plane.origin - ray.origin), plane.normal) / Vector3::Dot(ray.direction, plane.normal)}; //distance between ray origin and plane intersect
+				Vector3 p{ ray.origin + t * ray.direction };
 
-				if (ray.min < t && t < ray.max)
+				hitRecord.didHit = true;
+
+				if(ignoreHitRecord)
 				{
-					Vector3 p{ ray.origin + t * ray.direction };
-
-					hitRecord.didHit = true;
-					hitRecord.t = t;
-					hitRecord.materialIndex = plane.materialIndex;
-					hitRecord.origin = p;
-					hitRecord.normal = (p - plane.normal).Normalized();
 					return true;
 				}
-				else
-				{
-					hitRecord.didHit = false;
-					return false;
-				}
+
+				hitRecord.t = t;
+				hitRecord.materialIndex = plane.materialIndex;
+				hitRecord.origin = p;
+				hitRecord.normal = plane.normal;
+				return true;
 			}
-			else
-			{
-				return false;
-			}
+			hitRecord.didHit = false;
+			return false;
 		}
 
 		inline bool HitTest_Plane(const Plane& plane, const Ray& ray)
@@ -98,6 +93,7 @@ namespace dae
 			HitRecord temp{};
 			return HitTest_Plane(plane, ray, temp, true);
 		}
+		
 #pragma endregion
 #pragma region Triangle HitTest
 		//TRIANGLE HIT-TESTS
@@ -137,7 +133,7 @@ namespace dae
 		{
 			//todo W3
 			//assert(false && "No Implemented Yet!");
-			return {origin - light.origin};
+			return {light.origin - origin};
 		}
 
 		inline ColorRGB GetRadiance(const Light& light, const Vector3& target)

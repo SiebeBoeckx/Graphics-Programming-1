@@ -24,7 +24,7 @@ namespace dae
 		Vector3 origin{};
 		float fovAngle{90.f};
 
-		Vector3 forward{0.f, -0.25f, 0.860f};
+		Vector3 forward{Vector3::UnitZ};
 		Vector3 up{Vector3::UnitY};
 		Vector3 right{Vector3::UnitX};
 
@@ -44,11 +44,14 @@ namespace dae
 
 			Matrix cameraToWorld
 			{
-				rC,
-				uC,
-				forward,
-				origin
+				Vector4{rC, 0},
+				Vector4{uC, 0},
+				Vector4{forward, 0},
+				Vector4{rC, 1}
 			};
+
+			right = rC;
+			up = uC;
 
 
 			return cameraToWorld;
@@ -57,7 +60,7 @@ namespace dae
 		void Update(Timer* pTimer)
 		{
 			const float deltaTime = pTimer->GetElapsed();
-			const float movementSpeed = 1.f * pTimer->GetElapsed();
+			const float movementSpeed = 5.f * pTimer->GetElapsed();
 
 			//Keyboard Input
 			const uint8_t* pKeyboardState = SDL_GetKeyboardState(nullptr);
@@ -90,27 +93,22 @@ namespace dae
 
 			//rotation
 			Matrix finalRotationMat{};
-			const float rotationSpeed{ 0.001f * pTimer->GetElapsed() };
+			const float rotationSpeed{ 10.f * pTimer->GetElapsed() };
 
-			if(mouseState == SDL_BUTTON(3))
+			if((mouseState & SDL_BUTTON_RMASK) != 0)
 			{
-				if (mouseX != 0)
+				if(mouseX != 0)
 				{
-					totalYaw += mouseX * rotationSpeed;
+					int k = 1;
 				}
 
-				if (mouseY != 0)
-				{
-					totalPitch += mouseY * rotationSpeed;
-				}
+				totalYaw += mouseX * rotationSpeed;
+				totalPitch -= mouseY * rotationSpeed;
 
 				finalRotationMat = Matrix::CreateRotation(totalPitch, totalYaw, 0);
 
-				if (mouseX != 0 || mouseY != 0)
-				{
-					forward = finalRotationMat.TransformVector(Vector3::UnitZ);
-					forward.Normalize();
-				}
+				forward = finalRotationMat.TransformVector(Vector3::UnitZ);
+				forward.Normalize();
 			}
 		}
 	};

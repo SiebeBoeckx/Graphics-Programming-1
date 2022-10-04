@@ -125,8 +125,8 @@ namespace dae {
 		//assert(false && "Not Implemented Yet");
 		Matrix returnMatrix{};
 		returnMatrix.data[0] = Vector4{ 1,0,0,0 };
-		returnMatrix.data[1] = Vector4{ 0,cosf(pitch),-sinf(pitch),0};
-		returnMatrix.data[2] = Vector4{ 0,sinf(pitch),cosf(pitch),0};
+		returnMatrix.data[1] = Vector4{ 0,cosf(pitch * TO_RADIANS),-sinf(pitch * TO_RADIANS),0};
+		returnMatrix.data[2] = Vector4{ 0,sinf(pitch * TO_RADIANS),cosf(pitch * TO_RADIANS),0};
 		returnMatrix.data[3] = Vector4{ 0,0,0,1 };
 		return returnMatrix;
 	}
@@ -136,9 +136,9 @@ namespace dae {
 		//todo W1
 		//assert(false && "Not Implemented Yet");
 		Matrix returnMatrix{};
-		returnMatrix.data[0] = Vector4{ cosf(yaw),0,-sinf(yaw),0};
-		returnMatrix.data[1] = Vector4{ 0,0,0,0 };
-		returnMatrix.data[2] = Vector4{ sinf(yaw),0,cosf(yaw),0};
+		returnMatrix.data[0] = Vector4{ cosf(yaw * TO_RADIANS),0,-sinf(yaw * TO_RADIANS),0};
+		returnMatrix.data[1] = Vector4{ 0,1,0,0 };
+		returnMatrix.data[2] = Vector4{ sinf(yaw * TO_RADIANS),0,cosf(yaw * TO_RADIANS),0};
 		returnMatrix.data[3] = Vector4{ 0,0,0,1 };
 		return returnMatrix;
 	}
@@ -148,9 +148,9 @@ namespace dae {
 		//todo W1
 		//assert(false && "Not Implemented Yet");
 		Matrix returnMatrix{};
-		returnMatrix.data[0] = Vector4{ cosf(roll),sinf(roll),0,0};
-		returnMatrix.data[1] = Vector4{ -sinf(roll),cosf(roll),0,0};
-		returnMatrix.data[2] = Vector4{ 0,0,0,0 };
+		returnMatrix.data[0] = Vector4{ cosf(roll * TO_RADIANS),sinf(roll * TO_RADIANS),0,0};
+		returnMatrix.data[1] = Vector4{ -sinf(roll * TO_RADIANS),cosf(roll * TO_RADIANS),0,0};
+		returnMatrix.data[2] = Vector4{ 0,0,1,0 };
 		returnMatrix.data[3] = Vector4{ 0,0,0,1 };
 		return returnMatrix;
 	}
