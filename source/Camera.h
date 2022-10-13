@@ -97,11 +97,6 @@ namespace dae
 
 			if((mouseState & SDL_BUTTON_RMASK) != 0)
 			{
-				if(mouseX != 0)
-				{
-					int k = 1;
-				}
-
 				totalYaw += mouseX * rotationSpeed;
 				totalPitch -= mouseY * rotationSpeed;
 
@@ -109,6 +104,20 @@ namespace dae
 
 				forward = finalRotationMat.TransformVector(Vector3::UnitZ);
 				forward.Normalize();
+			}
+
+			//secondary movement/rotation
+			if ((mouseState & SDL_BUTTON_LMASK) != 0)
+			{
+				totalYaw += mouseX * rotationSpeed;
+				const Vector3 movement = forward * static_cast<float>(-mouseY) * movementSpeed;
+
+				finalRotationMat = Matrix::CreateRotation(totalPitch, totalYaw, 0);
+
+				forward = finalRotationMat.TransformVector(Vector3::UnitZ);
+				forward.Normalize();
+
+				this->origin += movement;
 			}
 		}
 	};

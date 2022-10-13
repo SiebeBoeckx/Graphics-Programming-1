@@ -16,15 +16,15 @@ namespace dae
 			//assert(false && "No Implemented Yet!");
 
 			
-			Vector3 tc{ sphere.origin - ray.origin }; //vector between ray origin and sphere center
-			float tcl2{ tc.SqrMagnitude() }; //length of tc squared
-			float dp{ Vector3::Dot(tc, ray.direction) }; //distance between ray origin and P (P is the intersection point of the line through the sphere origin, perpendicular onto the ray)
-			float od2{ tcl2 - Square(dp) }; //squared length of CP (center of sphere to point described above)
+			const Vector3 tc{ sphere.origin - ray.origin }; //vector between ray origin and sphere center
+			const float tcl2{ tc.SqrMagnitude() }; //length of tc squared
+			const float dp{ Vector3::Dot(tc, ray.direction) }; //distance between ray origin and P (P is the intersection point of the line through the sphere origin, perpendicular onto the ray)
+			const float od2{ tcl2 - (dp * dp) }; //squared length of CP (center of sphere to point described above)
 			
 			if (od2 <= sphere.radius * sphere.radius) // if distance between center of sphere and P is smaller than radius --> intersection(s)
 			{
-				float tca{ sqrtf((sphere.radius * sphere.radius) - od2) };
-				float t0{ dp - tca };
+				const float tca{ sqrtf((sphere.radius * sphere.radius) - od2) };
+				const float t0{ dp - tca };
 			
 				if (t0 < ray.min || t0 > ray.max)
 				{
@@ -63,13 +63,12 @@ namespace dae
 		{
 			//todo W1
 			//assert(false && "No Implemented Yet!");
-			//This code was wrong, was the cause of the bug
 
 			const float t{ Vector3::Dot((plane.origin - ray.origin), plane.normal) / Vector3::Dot(ray.direction, plane.normal)}; //distance between ray origin and plane intersect
 
 			if (t > ray.min && t < ray.max)
 			{
-				Vector3 p{ ray.origin + t * ray.direction };
+				const Vector3 p{ ray.origin + t * ray.direction };
 
 				hitRecord.didHit = true;
 
@@ -133,13 +132,23 @@ namespace dae
 		{
 			//todo W3
 			//assert(false && "No Implemented Yet!");
-			return {light.origin - origin};
+			return light.origin - origin;
 		}
 
 		inline ColorRGB GetRadiance(const Light& light, const Vector3& target)
 		{
 			//todo W3
-			assert(false && "No Implemented Yet!");
+			//assert(false && "No Implemented Yet!");
+			if(light.type == LightType::Point)
+			{
+				const ColorRGB irradiance = light.color * (light.intensity / (light.origin - target).SqrMagnitude());
+				return irradiance;
+			}
+			else if(light.type == LightType::Directional)
+			{
+				const ColorRGB irradiance = light.color * light.intensity;
+				return irradiance;
+			}
 			return {};
 		}
 	}

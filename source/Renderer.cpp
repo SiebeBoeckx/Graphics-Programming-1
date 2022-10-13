@@ -27,27 +27,23 @@ void Renderer::Render(Scene* pScene) const
 	auto& materials = pScene->GetMaterials();
 	auto& lights = pScene->GetLights();
 
-	float ar{ float(m_Width) / float(m_Height) };
-	float fov{ tanf(	(camera.fovAngle*TO_RADIANS) / 2) };
+	const float ar{ float(m_Width) / float(m_Height) };
+	const float fov{ tanf((camera.fovAngle*TO_RADIANS) / 2) };
 
 	const Matrix cameraToWorld = camera.CalculateCameraToWorld();
 
 	for (int px{}; px < m_Width; ++px)
 	{
+		const float rayX{ (((2 * (px + 0.5f)) / m_Width) - 1) * ar * fov };
+
 		for (int py{}; py < m_Height; ++py)
 		{
-			float rayX{ (((2 * (px + 0.5f)) / m_Width) - 1) * ar * fov };
-			float rayY{ (1 - ((2 * (py + 0.5f)) / m_Height )) * fov };
+			const float rayY{ (1 - ((2 * (py + 0.5f)) / m_Height )) * fov };
 
-			Vector3 origin{ 0,0,0 };
+			const Vector3 origin{ 0,0,0 };
 			const Vector3 rayDirection = cameraToWorld.TransformVector(rayX, rayY, 1).Normalized();
 
-			//const Vector3 transformedRay = { cameraToWorld.TransformVector(rayDirection) };
-			
-			//Vector3 rayDirection = { rayX,rayY,1 };
-			//const Vector3 transformedRayDirection = transformedRay.Normalized();
-
-			Ray viewRay{ camera.origin, rayDirection };
+			const Ray viewRay{ camera.origin, rayDirection };
 
 			//float gradient = px / static_cast<float>(m_Width);
 			//gradient += py / static_cast<float>(m_Width);
@@ -63,36 +59,55 @@ void Renderer::Render(Scene* pScene) const
 			//GeometryUtils::HitTest_Sphere(testSphere, viewRay, closestHit);
 			//
 
-			//if(px == 320 && py == 288)
-			//{
-			//	int k{};
-			//}
-
-			pScene->GetClosestHit(viewRay, closestHit);
-			if (closestHit.didHit)
+			if(px == 320 && py == 288)
 			{
-				finalColor = materials[closestHit.materialIndex]->Shade();
+				int k{};
 			}
 
-			//shadows(hard)
-			if (closestHit.didHit)
+
+			for (const Light& pLight : lights)
 			{
-				finalColor = materials[closestHit.materialIndex]->Shade();
-
-				Vector3 offsetOrigin = closestHit.normal * 0.001f;
-
-				for (const Light& pLight : lights)
+				pScene->GetClosestHit(viewRay, closestHit);
+				if (closestHit.didHit)
 				{
-					Vector3 lightDir = LightUtils::GetDirectionToLight(pLight, closestHit.origin + offsetOrigin);
-					const float lightrayMagnitude{ lightDir.Magnitude() };
-					Ray lightRay{ closestHit.origin + offsetOrigin,lightDir.Normalized(),0.0001f,lightrayMagnitude };
+					const float cosineLaw{ Vector3::Dot(closestHit.normal, LightUtils::GetDirectionToLight(pLight, closestHit.origin).Normalized()) };
+
+					if (cosineLaw < 0)
+					{
+						continue;
+					}
+
+					//shadows(hard)
+					const Vector3 offsetOrigin = closestHit.normal * 0.001f;
+
+					Vector3 lightDir = LightUtils::GetDirectionToLight(pLight, closestHit.origin); //offset not needed
+					const float lightrayMagnitude{ lightDir.Normalize() };
+					const Ray lightRay{ closestHit.origin + offsetOrigin,lightDir,0.0001f,lightrayMagnitude };
 					if (pScene->DoesHit(lightRay))
 					{
-						finalColor *= 0.5f;
+						continue;
 					}
+
+					const ColorRGB irradiance{ LightUtils::GetRadiance(pLight, closestHit.origin) };
+					const ColorRGB BRDF{ materials[closestHit.materialIndex]->Shade(closestHit, lightDir, -rayDirection) };
+					switch (m_CurrentLightingMode)
+					{
+					case LightingMode::Combined:
+						finalColor += irradiance * BRDF * cosineLaw;
+						break;
+					case LightingMode::ObservedArea:
+						finalColor += {cosineLaw, cosineLaw, cosineLaw};
+						break;
+					case LightingMode::Radiance:
+						finalColor += irradiance;
+						break;
+					case LightingMode::BRDF:
+						finalColor += BRDF;
+						break;
+					}
+					
 				}
 			}
-
 
 			//Update Color in Buffer
 			finalColor.MaxToOne();
@@ -102,7 +117,7 @@ void Renderer::Render(Scene* pScene) const
 				static_cast<uint8_t>(finalColor.g * 255),
 				static_cast<uint8_t>(finalColor.b * 255));
 		}
-	};
+	}
 
 	//@END
 	//Update SDL Surface
@@ -112,4 +127,25 @@ void Renderer::Render(Scene* pScene) const
 bool Renderer::SaveBufferToImage() const
 {
 	return SDL_SaveBMP(m_pBuffer, "RayTracing_Buffer.bmp");
+}
+
+void Renderer::CycleLightingMode()
+{
+	switch(m_CurrentLightingMode)
+	{
+	case LightingMode::ObservedArea:
+		m_CurrentLightingMode = LightingMode::Radiance;
+		break;
+	case LightingMode::Radiance:
+		m_CurrentLightingMode = LightingMode::BRDF;
+		break;
+	case LightingMode::BRDF:
+		m_CurrentLightingMode = LightingMode::Combined;
+		break;
+	case LightingMode::Combined:
+		m_CurrentLightingMode = LightingMode::ObservedArea;
+		break;
+	default:
+		break;
+	}
 }
