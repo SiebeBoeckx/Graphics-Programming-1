@@ -12,43 +12,36 @@ namespace dae
 		//SPHERE HIT-TESTS
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			//todo W1
-			//assert(false && "No Implemented Yet!");
+			const Vector3 rayOriginToSphereOrigin{ sphere.origin - ray.origin };
+			const float hypothenuseSquared{ rayOriginToSphereOrigin.SqrMagnitude() };
+			const float side1{ Vector3::Dot(rayOriginToSphereOrigin, ray.direction) };
 
-			
-			const Vector3 tc{ sphere.origin - ray.origin }; //vector between ray origin and sphere center
-			const float tcl2{ tc.SqrMagnitude() }; //length of tc squared
-			const float dp{ Vector3::Dot(tc, ray.direction) }; //distance between ray origin and P (P is the intersection point of the line through the sphere origin, perpendicular onto the ray)
-			const float od2{ tcl2 - (dp * dp) }; //squared length of CP (center of sphere to point described above)
-			
-			if (od2 <= sphere.radius * sphere.radius) // if distance between center of sphere and P is smaller than radius --> intersection(s)
-			{
-				const float tca{ sqrtf((sphere.radius * sphere.radius) - od2) };
-				const float t0{ dp - tca };
-			
-				if (t0 < ray.min || t0 > ray.max)
-				{
-					hitRecord.didHit = false;
-					return false;
-				}
+			const float distanceToRaySquared{ hypothenuseSquared - side1 * side1 };
 
-				hitRecord.didHit = true;
-				if(ignoreHitRecord)
+			//if the distance to the ray is larger than the radius there will be no results
+			//    also if equal because that is the exact border of the circle
+			if (distanceToRaySquared >= sphere.radius * sphere.radius) {
+				hitRecord.didHit = false;
+				return false;
+			}
 
-				{
-					return true;
-				}
-			
-				const Vector3 intersect{ ray.origin + ray.direction * t0 };
-				
-				hitRecord.t = t0;
-				hitRecord.materialIndex = sphere.materialIndex;
-				hitRecord.origin = intersect;
-				hitRecord.normal = (intersect - sphere.origin).Normalized();
+			const float distanceRaypointToIntersect{ sqrt(sphere.radius * sphere.radius - distanceToRaySquared) };
+			const float distance{ side1 - distanceRaypointToIntersect };
+
+			if (distance < ray.min || distance > ray.max) {
+				hitRecord.didHit = false;
+				return false;
+			}
+
+			hitRecord.didHit = true;
+			if (ignoreHitRecord) {
 				return true;
 			}
-			hitRecord.didHit = false;
-			return false;
+			hitRecord.materialIndex = sphere.materialIndex;
+			hitRecord.t = distance;
+			hitRecord.origin = ray.origin + distance * ray.direction;
+			hitRecord.normal = Vector3(sphere.origin, hitRecord.origin).Normalized();
+			return true;
 		}
 
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray)
@@ -61,26 +54,16 @@ namespace dae
 		//PLANE HIT-TESTS
 		inline bool HitTest_Plane(const Plane& plane, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			//todo W1
-			//assert(false && "No Implemented Yet!");
-
-			const float t{ Vector3::Dot((plane.origin - ray.origin), plane.normal) / Vector3::Dot(ray.direction, plane.normal)}; //distance between ray origin and plane intersect
-
-			if (t > ray.min && t < ray.max)
-			{
-				const Vector3 p{ ray.origin + t * ray.direction };
-
+			const float distance{ Vector3::Dot(Vector3{ ray.origin, plane.origin }, plane.normal) / Vector3::Dot(ray.direction, plane.normal) };
+			if (distance >= ray.min && distance <= ray.max) {
 				hitRecord.didHit = true;
-
-				if(ignoreHitRecord)
-				{
+				if (ignoreHitRecord) {
 					return true;
 				}
-
-				hitRecord.t = t;
+				hitRecord.t = distance;
 				hitRecord.materialIndex = plane.materialIndex;
-				hitRecord.origin = p;
 				hitRecord.normal = plane.normal;
+				hitRecord.origin = ray.origin + distance * ray.direction;
 				return true;
 			}
 			hitRecord.didHit = false;
