@@ -144,7 +144,7 @@ namespace dae
 		{
 			//assert(false && "No Implemented Yet!");
 			//Calculate Final Transform 
-			const auto finalTransform = translationTransform * rotationTransform * scaleTransform;
+			const auto finalTransform = scaleTransform * rotationTransform * translationTransform;
 
 			//Transform Positions (positions > transformedPositions)
 			transformedPositions.clear();
