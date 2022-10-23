@@ -83,12 +83,12 @@ void Renderer::Render(Scene* pScene) const
 					Vector3 lightDir = LightUtils::GetDirectionToLight(pLight, closestHit.origin); //offset not needed
 					const float lightrayMagnitude{ lightDir.Normalize() };
 					const Ray lightRay{ closestHit.origin + offsetOrigin,lightDir,0.0001f,lightrayMagnitude };
-					if (pScene->DoesHit(lightRay))
+					if (pScene->DoesHit(lightRay) && m_ShadowsEnabled)
 					{
 						continue;
 					}
 
-					const ColorRGB irradiance{ LightUtils::GetRadiance(pLight, closestHit.origin) };
+ 					const ColorRGB irradiance{ LightUtils::GetRadiance(pLight, closestHit.origin) };
 					const ColorRGB BRDF{ materials[closestHit.materialIndex]->Shade(closestHit, lightDir, -rayDirection) };
 					switch (m_CurrentLightingMode)
 					{
@@ -144,8 +144,6 @@ void Renderer::CycleLightingMode()
 		break;
 	case LightingMode::Combined:
 		m_CurrentLightingMode = LightingMode::ObservedArea;
-		break;
-	default:
 		break;
 	}
 }

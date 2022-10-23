@@ -35,17 +35,31 @@ namespace dae {
 
 		for (const auto& sphere : m_SphereGeometries)//loop over spheres
 		{
-			if(GeometryUtils::HitTest_Sphere(sphere, ray, currentHitRecord) && closestHit.t > currentHitRecord.t)
+			if(GeometryUtils::HitTest_Sphere(sphere, ray, currentHitRecord))
 			{
 				closestHit = currentHitRecord;
 			}
 		}
 
-		//currentHitRecord = closestHit;
+		for(const auto& triangle : m_Triangles)//loop over triangles
+		{
+			if(GeometryUtils::HitTest_Triangle(triangle,ray, currentHitRecord))
+			{
+				closestHit = currentHitRecord;
+			}
+		}
+
+		for (const auto& triangleMesh : m_TriangleMeshGeometries)//loop over triangle meshes
+		{
+			if (GeometryUtils::HitTest_TriangleMesh(triangleMesh, ray, currentHitRecord))
+			{
+				closestHit = currentHitRecord;
+			}
+		}
 
 		for (const auto& plane : m_PlaneGeometries)//loop over planes
 		{
-			if(GeometryUtils::HitTest_Plane(plane, ray, currentHitRecord) && closestHit.t > currentHitRecord.t)
+			if(GeometryUtils::HitTest_Plane(plane, ray, currentHitRecord))
 			{
 				if (currentHitRecord.t < closestHit.t)
 				{
@@ -64,6 +78,20 @@ namespace dae {
 		for (const auto& sphere : m_SphereGeometries)//loop over spheres
 		{
 			if (GeometryUtils::HitTest_Sphere(sphere, ray))
+			{
+				return true;
+			}
+		}
+		for (const auto& triangle : m_Triangles)//loop over triangles
+		{
+			if (GeometryUtils::HitTest_Triangle(triangle, ray))
+			{
+				return true;
+			}
+		}
+		for (const auto& triangleMesh : m_TriangleMeshGeometries)//loop over triangles meshes
+		{
+			if (GeometryUtils::HitTest_TriangleMesh(triangleMesh, ray))
 			{
 				return true;
 			}
@@ -263,5 +291,60 @@ namespace dae {
 		AddPointLight( { 0.f, 5.f, 5.f }, 25.f, colors::White);
 		AddPointLight( { 0.f, 5.f, -5.f }, 25.f, colors::White);
 	}
+#pragma endregion
+
+#pragma region W4_TestScene
+
+	void Scene_W4_TestScene::Initialize()
+	{
+		m_Camera.origin = { 0.f, 1.f, -5.f };
+		m_Camera.fovAngle = 45.f;
+
+		const auto matLambert_GrayBlue = AddMaterial(new Material_Lambert({ .49f, .57f, .57f }, 1.f));
+		const auto matLambert_White = AddMaterial(new Material_Lambert(colors::White, 1.f));
+		//Plane
+		AddPlane(Vector3{ 0.f, 0.f, 10.f }, Vector3{ 0.f, 0.f, -1.f }, matLambert_GrayBlue); //BACK
+		AddPlane(Vector3{ 0.f, 0.f, 0.f }, Vector3{ 0.f, 1.f, 0.f }, matLambert_GrayBlue); //BOTTOM
+		AddPlane(Vector3{ 0.f, 10.f, 0.f }, Vector3{ 0.f, -1.f, 0.f }, matLambert_GrayBlue); //TOP
+		AddPlane(Vector3{ 5.f, 0.f, 0.f }, Vector3{ -1.f, 0.f, 0.f }, matLambert_GrayBlue); //RIGHT
+		AddPlane(Vector3{ -5.f, 0.f, 0.f }, Vector3{ 1.f, 0.f, 0.f }, matLambert_GrayBlue); //LEFT
+
+		////Triangle (temp)
+		//auto triangle = Triangle{ {-.75f, .5f, 0.f}, {-.75f, 2.f, 0.f}, {.75f, .5f, 0.f} };
+		//triangle.cullMode = TriangleCullMode::NoCulling;
+		//triangle.materialIndex = matLambert_White;
+		//
+		//m_Triangles.emplace_back(triangle);
+
+
+		//Triangle Mesh (temp)
+		pMesh = AddTriangleMesh(TriangleCullMode::NoCulling, matLambert_White);
+		pMesh->positions = { {-.75f, -1.f, 0.f}, {-.75f, 1.f, 0.f}, {.75f, 1.f, 1.f}, {.75f, -1.f, 0.f} };
+		pMesh->indices = {
+			0,1,2, //first triangle
+			0,2,3  //second triangle
+		};
+
+		pMesh->CalculateNormals();
+
+		pMesh->Translate({ 0.f, 1.5f, 0.f });
+
+		pMesh->UpdateTransforms();
+		m_TriangleMeshGeometries.emplace_back(*pMesh);
+
+		//Light
+		AddPointLight(Vector3{ 0.f, 5.f, 5.f }, 50.f, ColorRGB{ 1.f, .61f, .45f }); //Backlight
+		AddPointLight(Vector3{ -2.5f, 5.f, -5.f }, 70.f, ColorRGB{ 1.f, .8f, .45f }); //Front Light left
+		AddPointLight(Vector3{ 2.5f, 2.5f, -5.f }, 50.f, ColorRGB{ .34f, .47f, .68f });
+	}
+
+	void Scene_W4_TestScene::Update(Timer* pTimer)
+	{
+		Scene::Update(pTimer);
+
+		pMesh->RotateY(PI_DIV_2 * pTimer->GetTotal());
+		pMesh->UpdateTransforms();
+	}
+
 #pragma endregion
 }

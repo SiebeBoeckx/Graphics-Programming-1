@@ -139,7 +139,7 @@ namespace dae
 			
 			const ColorRGB specular = { dfg.r / (4 * vn * ln), dfg.g / (4 * vn * ln), dfg.b / (4 * vn * ln) };
 			
-			ColorRGB kd = ColorRGB{ 1,1,1 } - f;
+			const ColorRGB kd = ColorRGB{ 1,1,1 } - f;
 			
 			const ColorRGB diffuse = BRDF::Lambert(kd, m_Albedo);
 			
