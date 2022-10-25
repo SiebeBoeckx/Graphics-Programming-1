@@ -418,7 +418,7 @@ namespace dae {
 	{
 		Scene::Update(pTimer);
 
-		const auto yawAngle = (pTimer->GetTotal() + 1.f) * 60;
+		const auto yawAngle = (cos(pTimer->GetTotal()) + 1.f) / 2.f * PI_2;
 		for (const auto pMesh: m_Meshes)
 		{
 			pMesh->RotateY(yawAngle);
@@ -447,11 +447,11 @@ namespace dae {
 
 		////Bunny Mesh
 		pMesh = AddTriangleMesh(TriangleCullMode::BackFaceCulling, matLambert_White);
-		Utils::ParseOBJ("Resources/lowpoly_bunny.obj", pMesh->positions, pMesh->normals, pMesh->indices);
+		Utils::ParseOBJ("Resources/lowpoly_bunny2.obj", pMesh->positions, pMesh->normals, pMesh->indices);
 
 		//pMesh->Scale({ 2.f, 2.f, 2.f });
-		//pMesh->Translate({ 0.f,1.f,0.f });
-		pMesh->RotateY(180);
+		//pMesh->Translate({ 0.f,1.f,-10.f });
+		//pMesh->RotateY(180);
 
 		pMesh->UpdateTransforms();
 		m_TriangleMeshGeometries[0] = *pMesh;

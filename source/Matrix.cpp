@@ -136,9 +136,9 @@ namespace dae {
 		//todo W1
 		//assert(false && "Not Implemented Yet");
 		Matrix returnMatrix{};
-		returnMatrix.data[0] = Vector4{ cosf(yaw * TO_RADIANS),0,-sinf(yaw * TO_RADIANS),0};
+		returnMatrix.data[0] = Vector4{ cosf(yaw),0,-sinf(yaw),0};
 		returnMatrix.data[1] = Vector4{ 0,1,0,0 };
-		returnMatrix.data[2] = Vector4{ sinf(yaw * TO_RADIANS),0,cosf(yaw * TO_RADIANS),0};
+		returnMatrix.data[2] = Vector4{ sinf(yaw),0,cosf(yaw),0};
 		returnMatrix.data[3] = Vector4{ 0,0,0,1 };
 		return returnMatrix;
 	}
